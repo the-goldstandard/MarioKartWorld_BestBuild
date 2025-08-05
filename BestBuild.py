@@ -69,7 +69,7 @@ for ic in range(0,nc,1):
             speedincrease_solid[iB,i]=(1+weightandcoins.cell(row=2+int(speedlvl_solid[iB]),column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
             speedincrease_grainy[iB,i]=(1+weightandcoins.cell(row=2+int(speedlvl_grainy[iB]),column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
             speedincrease_water[iB,i]=(1+weightandcoins.cell(row=2+int(speedlvl_water[iB]),column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
-            speedincrease_railairorwall[iB,i]=(1+weightandcoins.cell(row=12,column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
+            speedincrease_railairorwall[iB,i]=(1+weightandcoins.cell(row=15,column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
             # recalls the speed increases for each terrain at every coin count according to the speed level and weight
         speedincrease_overall[iB,:]=(0.5188*speedincrease_solid[iB,:]+0.2131*speedincrease_grainy[iB,:]+0.0747*speedincrease_water[iB,:]+0.1934*speedincrease_railairorwall[iB,:])
         speedincrease_expected[iB]=np.dot(speedincrease_overall[iB,:],P).item()
