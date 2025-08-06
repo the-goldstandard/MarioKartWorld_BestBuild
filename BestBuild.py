@@ -134,10 +134,13 @@ for i in range(0,len(jB),1):
 
 ## find how a particular chosen combination compares (optinal; toggle by boolean)
 
-if False:
+if True:
     IC=10 # Mario
     IV=3 # Baby Blooper
     IB=IC*nv+IV
+    s1=np.sort(speedincrease_expected_filtered[0][0])
+    s1=s1[-1::-1]
+    rank=np.array(np.where(s1==speedincrease_expected[IB])).flatten()[0]+1
     print("")
     print(f"User-selected combination: {comboname[IB]}")
     print(f"Expected speed: +{np.round(100*speedincrease_expected[IB],3)}% from baseline")
@@ -145,11 +148,25 @@ if False:
     print(f"Acceleration level: {int(accelerationlevel[IB])}")
     print(f"Weight: {int(weight[IB])}")
     print(f"Handling: {int(handling_solid[IB])}-{int(handling_grainy[IB])}-{int(handling_water[IB])}")
+    if rank==1:
+        print(f"This combination is the best")
+    if rank==2:
+        print(f"This combination is the 2nd best")
+    if rank==3:
+        print(f"This combination is the 3rd best")
+    elif rank%10>=4 or rank%10==0 or (rank%100>=10 and rank%100<=20):
+        print(f"This combination is the {rank}th best")
+    elif rank%10==3:
+        print(f"This combination is the {rank}rd best")
+    elif rank%10==2:
+        print(f"This combination is the {rank}nd best")
+    elif rank%10==1:
+        print(f"This combination is the {rank}st best")
     # prints the details of the selected combination
     plt.plot(np.arange(0,21,1),100*speedincrease_overall[IB,:],'kx',label=comboname[IB])
     # plots the speed-coincount curve for the selected combination
 
-## Dressup the graph
+## Dress up the graph
 
 plt.xlabel("Number of coins in possession")
 plt.ylabel("Expected speed increase relative to baseline (%)")
@@ -170,4 +187,6 @@ plt.xticks(np.arange(0,21,1))
 plt.yticks(np.arange(0,11,1))
 
 plt.grid()
-plt.show()
+
+if True:
+    plt.show()
