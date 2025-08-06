@@ -36,8 +36,8 @@ speedlvl_water=np.zeros(nB)
 speedincrease_solid=np.zeros((nB,21))
 speedincrease_grainy=np.zeros((nB,21))
 speedincrease_water=np.zeros((nB,21))
-speedincrease_overall=np.zeros((nB,21))
 speedincrease_railairorwall=np.zeros((nB,21))
+speedincrease_overall=np.zeros((nB,21))
 speedincrease_expected=np.zeros(nB)
 accelerationlevel=np.zeros(nB)
 weight=np.zeros(nB)
@@ -48,9 +48,20 @@ handling_water=np.zeros(nB)
 
 ## Analyse the stats
 
-P=f.CoinCountProbabilities(True)
-# loads the state probabilities of the number of coins the player posseses at any point during a race
-# The boolean input indicates whether the focus is on 3-lap races (True) or 6-lap knockout tours (False)
+# Chooses whether to use Queueing Theory probabilities (True) or from raw data (False)
+if True:
+    P=f.CoinCountProbabilities(True)
+    # loads the state probabilities of the number of coins the player posseses at any point during a race
+    # The boolean input indicates whether the focus is on 3-lap races (True) or 6-lap knockout tours (False)
+else:
+    file2=pyxl.load_workbook("Mario Kart World real time coin possession data.xlsx",data_only=True)
+    spreadsheet=file2["shortcat"]
+    # loads the raw data spreadsheet
+    P=np.zeros(21)
+    # preallocates the probability matrix
+    for i in range(0,21,1):
+        P[i]=spreadsheet.cell(row=2+i,column=7).value
+        # imports the probabilities
 
 for ic in range(0,nc,1):
     for iv in range(0,nv,1):
@@ -124,8 +135,8 @@ for i in range(0,len(jB),1):
 ## find how a particular chosen combination compares (optinal; toggle by boolean)
 
 if False:
-    IC=16 # Wario
-    IV=8 # Billdozer
+    IC=10 # Mario
+    IV=3 # Baby Blooper
     IB=IC*nv+IV
     print("")
     print(f"User-selected combination: {comboname[IB]}")
@@ -150,7 +161,7 @@ plt.legend(loc="upper right")
 plt.grid()
 
 plt.figure(2)
-plt.plot(np.arange(0,21,1),100*P,'b.')
+plt.bar(np.arange(0,21,1),100*P[:,0])
 plt.xlabel("Number of coins in possession")
 plt.ylabel("Coin possession probability (%)")
 plt.xlim(0,20)
