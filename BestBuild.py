@@ -4,9 +4,7 @@
 
 import numpy as np
 import openpyxl as pyxl
-import matplotlib.pyplot as plt
 import Functions as f
-import colorsys
 
 ## Initiate and preallocate
 
@@ -96,97 +94,135 @@ speedincrease_expected_filtered=speedincrease_expected[[jB0]]
 # Filters for combinations that meet or exceed the acceleration level requirement
 
 jB1=jB0[0][speedincrease_expected_filtered.argmax()]
-bestcombo=comboname[jB1]
-# finds the best combination
-print(f"Best combination: {bestcombo}")
-print(f"Expected speed: +{np.round(100*speedincrease_expected[jB1],3)}% from baseline")
-print(f"Speed level: {int(speedlvl_solid[jB1])}-{int(speedlvl_grainy[jB1])}-{int(speedlvl_water[jB1])}")
-print(f"Acceleration level: {int(accelerationlevel[jB1])}")
-print(f"Weight: {int(weight[jB1])}")
-print(f"Handling: {int(handling_solid[jB1])}-{int(handling_grainy[jB1])}-{int(handling_water[jB1])}")
-# prints the details of the best combination
-
-plt.rcParams.update({'font.size': 10})
-plt.rcParams['figure.constrained_layout.use']=True
 
 jB=np.where(speedincrease_expected>=0.98*np.max(speedincrease_expected_filtered))
 jB=np.intersect1d(jB0,jB)
 # finds the indices of all viable alternatives (within 2% of the maximum relative expected speed increase)
 jB=np.delete(jB,np.where(jB==jB1))
-# prvents double-counting the best combination
-
-plt.figure(1)
-plt.plot(np.arange(0,21,1),100*speedincrease_overall[jB1,:],color=colorsys.hsv_to_rgb(0,1,1),marker=".",markersize=6,linestyle='',label=bestcombo)
-# plots the speed-coincount curve for the best combination
-
-for i in range(0,len(jB),1):
-    i2=i+1
-    print("")
-    print(f"Viable alternative {i+1}: {comboname[jB[i]]}")
-    print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[i]],3)}% from baseline")
-    print(f"Speed level: {int(speedlvl_solid[jB[i]])}-{int(speedlvl_grainy[jB[i]])}-{int(speedlvl_water[jB[i]])}")
-    print(f"Acceleration level: {int(accelerationlevel[jB[i]])}")
-    print(f"Weight: {int(weight[jB[i]])}")
-    print(f"Handling: {int(handling_solid[jB[i]])}-{int(handling_grainy[jB[i]])}-{int(handling_water[jB[i]])}")
-    # prints the details of each viable alternative
-    plt.plot(np.arange(0,21,1),100*speedincrease_overall[jB[i],:],color=colorsys.hsv_to_rgb(28/36*(i+1)/(len(jB)),1,1),marker=".",markersize=(i2/len(jB)*3+(len(jB)-i2)/len(jB)*6),linestyle='',label=comboname[jB[i]])
-    # plots the speed-coincount curve for each viable alternative
+jB=np.concatenate((np.array([jB1]),jB[:]))
+# moves the best combination to the top of the list
 
 ## find how a particular chosen combination compares (optinal; toggle by boolean)
 
-if True:
+user_selection=True
+
+if user_selection:
     IC=10 # Mario
     IV=3 # Baby Blooper
     IB=IC*nv+IV
-    s1=np.sort(speedincrease_expected_filtered[0][0])
+    # the index of the chosen combination
+    jB=np.concatenate((np.array([IB]),jB[:]))
+    # adds the user-selected combination to the top of the list
+    
+## display the results and upload them onto the outfile
+
+answers=pyxl.load_workbook("Answers.xlsx")
+answersheet=answers["Sheet1"]
+# opens the outfile
+
+for ia in range(1,11,1):
+    for i1 in range(3,483,1):
+        cell1=answersheet.cell(row=i1,column=ia)
+        cell1.value=None
+for ia in range(1,481,1):
+    for i1 in range(2,24,1):
+        cell2=answersheet.cell(row=i1,column=13+ia)
+        cell2.value=None
+# clears all existing answers on the outfile
+
+for c in range(0,21,1):
+    answersheet.cell(row=3+c,column=13,value=P[c,0])
+    # uploads the probabilities onto the answer spreadsheet
+
+if user_selection:
+    s1=np.sort(speedincrease_expected_filtered[0][0]).copy()
     s1=s1[-1::-1]
     rank=np.array(np.where(s1==speedincrease_expected[IB])).flatten()[0]+1
-    print("")
-    print(f"User-selected combination: {comboname[IB]}")
-    print(f"Expected speed: +{np.round(100*speedincrease_expected[IB],3)}% from baseline")
-    print(f"Speed level: {int(speedlvl_solid[IB])}-{int(speedlvl_grainy[IB])}-{int(speedlvl_water[IB])}")
-    print(f"Acceleration level: {int(accelerationlevel[IB])}")
-    print(f"Weight: {int(weight[IB])}")
-    print(f"Handling: {int(handling_solid[IB])}-{int(handling_grainy[IB])}-{int(handling_water[IB])}")
-    if rank==1:
-        print(f"This combination is the best")
-    if rank==2:
-        print(f"This combination is the 2nd best")
-    if rank==3:
-        print(f"This combination is the 3rd best")
-    elif rank%10>=4 or rank%10==0 or (rank%100>=10 and rank%100<=20):
-        print(f"This combination is the {rank}th best")
-    elif rank%10==3:
-        print(f"This combination is the {rank}rd best")
-    elif rank%10==2:
-        print(f"This combination is the {rank}nd best")
-    elif rank%10==1:
-        print(f"This combination is the {rank}st best")
-    # prints the details of the selected combination
-    plt.plot(np.arange(0,21,1),100*speedincrease_overall[IB,:],'kx',label=comboname[IB])
-    # plots the speed-coincount curve for the selected combination
+    for j in range(0,len(jB),1):
+        # for each considered character-vehicle combination
+        answersheet.cell(row=2,column=14+j,value=j)
+        answersheet.cell(row=3+j,column=2,value=comboname[jB[j]])
+        answersheet.cell(row=3+j,column=3,value=int(speedlvl_solid[jB[j]]))
+        answersheet.cell(row=3+j,column=4,value=int(speedlvl_grainy[jB[j]]))
+        answersheet.cell(row=3+j,column=5,value=int(speedlvl_water[jB[j]]))
+        answersheet.cell(row=3+j,column=6,value=int(accelerationlevel[jB[j]]))
+        answersheet.cell(row=3+j,column=7,value=int(weight[jB[j]]))
+        answersheet.cell(row=3+j,column=8,value=int(handling_solid[jB[j]]))
+        answersheet.cell(row=3+j,column=9,value=int(handling_grainy[jB[j]]))
+        answersheet.cell(row=3+j,column=10,value=int(handling_water[jB[j]]))
+        # uploads the attribute profile onto the outfile
+        for c in range(0,21,1):
+            answersheet.cell(row=3+c,column=14+j,value=speedincrease_overall[jB[j],c])
+            # uploads the overall speed increase at every coin onto the outfile
 
-## Dress up the graph
+        if j==0:
+            answersheet.cell(row=3+j,column=1,value="User-selected")
+            answersheet.cell(row=2,column=14+j,value="User-selected")
+            print(f"User-selected combination: {comboname[jB[j]]}")
+        elif j==1:
+            answersheet.cell(row=3+j,column=1,value=j)
+            answersheet.cell(row=2,column=14+j,value=j)
+            print("")
+            print(f"Best combination: {comboname[jB[j]]}")
+        else:
+            answersheet.cell(row=3+j,column=1,value=j)
+            answersheet.cell(row=2,column=14+j,value=j)
+            print("")
+            print(f"Viable alternative {j-1}: {comboname[jB[j]]}")
 
-plt.xlabel("Number of coins in possession")
-plt.ylabel("Expected speed increase relative to baseline (%)")
-plt.xlim(0,20)
-plt.ylim(2,11)
-plt.xticks(np.arange(0,21,1))
-plt.yticks(np.arange(2,12,1))
-plt.legend(loc="upper right")
-plt.grid()
+        print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3)}% from baseline")
+        print(f"Speed level: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
+        print(f"Acceleration level: {int(accelerationlevel[jB[j]])}")
+        print(f"Weight: {int(weight[jB[j]])}")
+        print(f"Handling: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}")
 
-plt.figure(2)
-plt.bar(np.arange(0,21,1),100*P[:,0])
-plt.xlabel("Number of coins in possession")
-plt.ylabel("Coin possession probability (%)")
-plt.xlim(0,20)
-plt.ylim(0,10)
-plt.xticks(np.arange(0,21,1))
-plt.yticks(np.arange(0,11,1))
+        if j==0:
+            if rank==1:
+                print(f"This combination is the best")
+            elif rank==2:
+                print(f"This combination is the 2nd best")
+            elif rank==3:
+                print(f"This combination is the 3rd best")
+            elif rank%10>=4 or rank%10==0 or (rank%100>=10 and rank%100<=20):
+                print(f"This combination is the {rank}th best")
+            elif rank%10==3:
+                print(f"This combination is the {rank}rd best")
+            elif rank%10==2:
+                print(f"This combination is the {rank}nd best")
+            elif rank%10==1:
+                print(f"This combination is the {rank}st best")
+            # prints the details of the selected combination
+    
+else:
+    for j in range(0,len(jB),1):
+        # for each considered character-vehicle combination
+        answersheet.cell(row=4+j,column=1,value=j+1)
+        answersheet.cell(row=2,column=15+j,value=j+1)
+        answersheet.cell(row=4+j,column=2,value=comboname[jB[j]])
+        answersheet.cell(row=4+j,column=3,value=int(speedlvl_solid[jB[j]]))
+        answersheet.cell(row=4+j,column=4,value=int(speedlvl_grainy[jB[j]]))
+        answersheet.cell(row=4+j,column=5,value=int(speedlvl_water[jB[j]]))
+        answersheet.cell(row=4+j,column=6,value=int(accelerationlevel[jB[j]]))
+        answersheet.cell(row=4+j,column=7,value=int(weight[jB[j]]))
+        answersheet.cell(row=4+j,column=8,value=int(handling_solid[jB[j]]))
+        answersheet.cell(row=4+j,column=9,value=int(handling_grainy[jB[j]]))
+        answersheet.cell(row=4+j,column=10,value=int(handling_water[jB[j]]))
+        # uploads the attribute profile onto the outfile
+        for c in range(0,21,1):
+            answersheet.cell(row=3+c,column=15+j,value=speedincrease_overall[jB[j],c])
+            # uploads the overall speed increase at every coin onto the outfile
 
-plt.grid()
+        if j==0:
+            print(f"Best combination: {comboname[jB[j]]}")
+        else:
+            print("")
+            print(f"Viable alternative {j}: {comboname[jB[j]]}")
 
-if True:
-    plt.show()
+        print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3)}% from baseline")
+        print(f"Speed level: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
+        print(f"Acceleration level: {int(accelerationlevel[jB[j]])}")
+        print(f"Weight: {int(weight[jB[j]])}")
+        print(f"Handling: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}") 
+
+answers.save("Answers.xlsx")
+# saves the file
