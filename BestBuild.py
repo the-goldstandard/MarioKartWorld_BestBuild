@@ -4,7 +4,9 @@
 
 import numpy as np
 import openpyxl as pyxl
+import matplotlib.pyplot as plt
 import Functions as f
+import colorsys
 
 ## Initiate and preallocate
 
@@ -24,7 +26,7 @@ nB=nc*nv
 iB=0
 # preallocates the considered combination counter
 
-AccelLvlLTL=12
+AccelLvlLTL=15
 # the minimum acceleration level requirement for a combination to be considered
 
 comboname=[[0]*1 for i2 in range(0,nB,1)]
@@ -47,7 +49,7 @@ handling_water=np.zeros(nB)
 ## Analyse the stats
 
 # Chooses whether to use Queueing Theory probabilities (True) or from raw data (False)
-if True:
+if False:
     P=f.CoinCountProbabilities(True)
     # loads the state probabilities of the number of coins the player posseses at any point during a race
     # The boolean input indicates whether the focus is on 3-lap races (True) or 6-lap knockout tours (False)
@@ -131,13 +133,17 @@ for ia in range(1,481,1):
 # clears all existing answers on the outfile
 
 for c in range(0,21,1):
-    answersheet.cell(row=3+c,column=13,value=P[c,0])
+    answersheet.cell(row=3+c,column=13,value=np.array(P).flatten()[c])
     # uploads the probabilities onto the answer spreadsheet
 
 if user_selection:
     s1=np.sort(speedincrease_expected_filtered[0][0]).copy()
     s1=s1[-1::-1]
-    rank=np.array(np.where(s1==speedincrease_expected[IB])).flatten()[0]+1
+    ranks=np.array(np.where(s1==speedincrease_expected[IB])).flatten()
+    if ranks.size!=0:
+        rank=ranks[0]+1
+    else:
+        rank=np.nan
     for j in range(0,len(jB),1):
         # for each considered character-vehicle combination
         answersheet.cell(row=2,column=14+j,value=j)
@@ -191,6 +197,8 @@ if user_selection:
                 print(f"This combination is the {rank}nd best")
             elif rank%10==1:
                 print(f"This combination is the {rank}st best")
+            else:
+                print(f"This combination is not viable")
             # prints the details of the selected combination
     
 else:
@@ -225,4 +233,4 @@ else:
         print(f"Handling: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}") 
 
 answers.save("Answers.xlsx")
-# saves the file
+# saves the outfile
