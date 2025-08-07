@@ -5,8 +5,6 @@
 import numpy as np
 import openpyxl as pyxl
 import matplotlib.pyplot as plt
-import Functions as f
-import colorsys
 
 ## Initiate and preallocate
 
