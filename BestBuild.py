@@ -196,7 +196,7 @@ if user_selection:
             elif rank%10==1:
                 print(f"This combination is the {rank}st best")
             else:
-                print(f"This combination is not viable")
+                print(f"This combination does not meet the acceleration requirement")
             # prints the details of the selected combination
     
 else:
