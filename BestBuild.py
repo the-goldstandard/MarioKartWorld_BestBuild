@@ -49,7 +49,7 @@ handling_water=np.zeros(nB)
 ## Analyse the stats
 
 # Chooses whether to use Queueing Theory probabilities (True) or from raw data (False)
-if False:
+if True:
     P=f.CoinCountProbabilities(True)
     # loads the state probabilities of the number of coins the player posseses at any point during a race
     # The boolean input indicates whether the focus is on 3-lap races (True) or 6-lap knockout tours (False)
