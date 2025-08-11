@@ -13,6 +13,7 @@ file=pyxl.load_workbook("Mario Kart World stats.xlsx",data_only=True)
 characters=file["Characters"]
 vehicles=file["Vehicles"]
 weightandcoins=file["Weight & Coins"]
+acceleration=file["Acceleration"]
 # separates the spreadsheets in the excel files
 
 nc=20
@@ -24,9 +25,6 @@ nB=nc*nv
 iB=0
 # preallocates the considered combination counter
 
-AccelLvlLTL=15
-# the minimum acceleration level requirement for a combination to be considered
-
 comboname=[[0]*1 for i2 in range(0,nB,1)]
 speedlvl_solid=np.zeros(nB)
 speedlvl_grainy=np.zeros(nB)
@@ -35,6 +33,10 @@ speedincrease_solid=np.zeros((nB,21))
 speedincrease_grainy=np.zeros((nB,21))
 speedincrease_water=np.zeros((nB,21))
 speedincrease_railairorwall=np.zeros((nB,21))
+speedincrease_coinaveraged=np.zeros((nB,21))
+nonitemboost_rates=np.zeros(7)
+nonitemboost_durations=np.zeros((nB,7))
+nonitemboost_proportion=np.zeros(nB)
 speedincrease_overall=np.zeros((nB,21))
 speedincrease_expected=np.zeros(nB)
 accelerationlevel=np.zeros(nB)
@@ -61,14 +63,22 @@ else:
         P[i]=spreadsheet.cell(row=2+i,column=7).value
         # imports the probabilities
 
+file3=pyxl.load_workbook("Mario Kart World race data.xlsx",data_only=True)
+nonitemboosts=file3["Sheet1"]
+for ib in range(0,7,1):
+    nonitemboost_rates[ib]=nonitemboosts.cell(row=4+ib,column=16).value
+raceduration=60/(nonitemboosts.cell(row=11,column=16).value)
+nonitemboost_speedincrease=acceleration.cell(row=4,column=26).value
+# loads the non-item boost rates and durations
+
 for ic in range(0,nc,1):
     for iv in range(0,nv,1):
         # for every character-vehicle combination
-        accelerationlevel[iB]=characters.cell(row=3+ic,column=5).value+vehicles.cell(row=3+iv,column=5).value
         comboname[iB]=f"{characters.cell(row=3+ic,column=1).value} with the {vehicles.cell(row=3+iv,column=1).value}"
         speedlvl_solid[iB]=characters.cell(row=3+ic,column=2).value+vehicles.cell(row=3+iv,column=2).value
         speedlvl_grainy[iB]=characters.cell(row=3+ic,column=3).value+vehicles.cell(row=3+iv,column=3).value
         speedlvl_water[iB]=characters.cell(row=3+ic,column=4).value+vehicles.cell(row=3+iv,column=4).value
+        accelerationlevel[iB]=characters.cell(row=3+ic,column=5).value+vehicles.cell(row=3+iv,column=5).value
         weight[iB]=characters.cell(row=3+ic,column=6).value+vehicles.cell(row=3+iv,column=6).value
         handling_solid[iB]=characters.cell(row=3+ic,column=7).value+vehicles.cell(row=3+iv,column=7).value
         handling_grainy[iB]=characters.cell(row=3+ic,column=8).value+vehicles.cell(row=3+iv,column=8).value
@@ -80,7 +90,14 @@ for ic in range(0,nc,1):
             speedincrease_water[iB,i]=(1+weightandcoins.cell(row=2+int(speedlvl_water[iB]),column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
             speedincrease_railairorwall[iB,i]=(1+weightandcoins.cell(row=15,column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
             # recalls the speed increases for each terrain at every coin count according to the speed level and weight
-        speedincrease_overall[iB,:]=(0.5188*speedincrease_solid[iB,:]+0.2131*speedincrease_grainy[iB,:]+0.0747*speedincrease_water[iB,:]+0.1934*speedincrease_railairorwall[iB,:])
+        speedincrease_coinaveraged[iB,:]=(0.5188*speedincrease_solid[iB,:]+0.2131*speedincrease_grainy[iB,:]+0.0747*speedincrease_water[iB,:]+0.1934*speedincrease_railairorwall[iB,:])
+        # evaluates the coin-averaged speed increase
+        for ib in range(0,7,1):
+            nonitemboost_durations[iB,ib]=acceleration.cell(row=1+int(accelerationlevel[iB]),column=4+3*ib).value
+            # finds the non-item boost durations
+        nonitemboost_proportion[iB]=np.dot(np.array(nonitemboost_rates).flatten()/60,np.array(nonitemboost_durations[iB,:]).flatten()).item()
+        speedincrease_overall[iB,:]=((1+speedincrease_coinaveraged[iB,:])*(1+nonitemboost_proportion[iB]*nonitemboost_speedincrease))*(raceduration)/(raceduration+acceleration.cell(row=1+int(accelerationlevel[iB]),column=23).value-acceleration.cell(row=4,column=23).value)-1
+        # finds the speed increases at every coin including the effects of non-item boosts
         speedincrease_expected[iB]=np.dot(speedincrease_overall[iB,:],P).item()
         # evaluates the overall speed increase by the proportions of solid, grainy, and water terrains
         # treats the number of coins possessed and the terrain on which the player is driving as independent events
@@ -89,14 +106,9 @@ for ic in range(0,nc,1):
 
 ## Find the best combination and viable alternatives
 
-jB0=np.where(accelerationlevel>=AccelLvlLTL)
-speedincrease_expected_filtered=speedincrease_expected[[jB0]]
-# Filters for combinations that meet or exceed the acceleration level requirement
+jB1=speedincrease_expected.argmax()
 
-jB1=jB0[0][speedincrease_expected_filtered.argmax()]
-
-jB=np.where(speedincrease_expected>=0.98*np.max(speedincrease_expected_filtered))
-jB=np.intersect1d(jB0,jB)
+jB=np.array(np.where(speedincrease_expected>=np.max(speedincrease_expected)-0.1*0.01)).flatten()
 # finds the indices of all viable alternatives (within 2% of the maximum relative expected speed increase)
 jB=np.delete(jB,np.where(jB==jB1))
 jB=np.concatenate((np.array([jB1]),jB[:]))
@@ -107,8 +119,8 @@ jB=np.concatenate((np.array([jB1]),jB[:]))
 user_selection=True
 
 if user_selection:
-    IC=10 # Mario
-    IV=3 # Baby Blooper
+    IC=10 # Swoop
+    IV=3 # Reel racer
     IB=IC*nv+IV
     # the index of the chosen combination
     jB=np.concatenate((np.array([IB]),jB[:]))
@@ -135,7 +147,7 @@ for c in range(0,21,1):
     # uploads the probabilities onto the answer spreadsheet
 
 if user_selection:
-    s1=np.sort(speedincrease_expected_filtered[0][0]).copy()
+    s1=np.sort(np.array(speedincrease_expected).flatten()).copy()
     s1=s1[-1::-1]
     ranks=np.array(np.where(s1==speedincrease_expected[IB])).flatten()
     if ranks.size!=0:
@@ -195,8 +207,6 @@ if user_selection:
                 print(f"This combination is the {rank}nd best")
             elif rank%10==1:
                 print(f"This combination is the {rank}st best")
-            else:
-                print(f"This combination does not meet the acceleration requirement")
             # prints the details of the selected combination
     
 else:
@@ -215,7 +225,7 @@ else:
         answersheet.cell(row=4+j,column=10,value=int(handling_water[jB[j]]))
         # uploads the attribute profile onto the outfile
         for c in range(0,21,1):
-            answersheet.cell(row=3+c,column=15+j,value=speedincrease_overall[jB[j],c])
+            answersheet.cell(row=3+c,column=15+j,value=speedincrease_coinaveraged[jB[j],c])
             # uploads the overall speed increase at every coin onto the outfile
 
         if j==0:
