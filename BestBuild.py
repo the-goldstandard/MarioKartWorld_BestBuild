@@ -186,7 +186,7 @@ if user_selection:
             print("")
             print(f"Viable alternative {j-1}: {comboname[jB[j]]}")
 
-        print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3)}% from baseline")
+        print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3):.3f}% from baseline")
         print(f"Speed level: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
         print(f"Acceleration level: {int(accelerationlevel[jB[j]])}")
         print(f"Weight: {int(weight[jB[j]])}")
@@ -234,7 +234,7 @@ else:
             print("")
             print(f"Viable alternative {j}: {comboname[jB[j]]}")
 
-        print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3)}% from baseline")
+        print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3):.3f}% from baseline")
         print(f"Speed level: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
         print(f"Acceleration level: {int(accelerationlevel[jB[j]])}")
         print(f"Weight: {int(weight[jB[j]])}")
