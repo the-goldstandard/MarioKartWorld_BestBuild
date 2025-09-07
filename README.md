@@ -11,7 +11,7 @@ Findings:
 - There are two distinct dominant strategies for the optimal character-vehicle combinations for 150cc races in Mario Kart World
 - The first dominant strategy is to maximise the speed attribute on solid terrain using a solid-focused heavyweight character (i.e. Wario or Wriggler) with the Reel Racer to maximise progress while the racer is uninterrupted
 - The second dominant strategy is to relying on faster recovery when necessary and higher speed increases at the middling numbers of coins in possession to enhance the racer’s overall expected speed
-- Mario Kart World players may may choose one of the two dominant strategies according to their preferred approach to the game
+- Mario Kart World players may may choose either of the two dominant strategies according to their preferred approach to the game and see similar success
 
 How to run this repository:
 
