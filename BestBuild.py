@@ -96,7 +96,7 @@ for ic in range(0,nc,1):
             nonitemboost_durations[iB,ib]=acceleration.cell(row=1+int(accelerationlevel[iB]),column=4+3*ib).value
             # finds the non-item boost durations
         nonitemboost_proportion[iB]=np.dot(np.array(nonitemboost_rates).flatten()/60,np.array(nonitemboost_durations[iB,:]).flatten()).item()
-        speedincrease_overall[iB,:]=((1+speedincrease_coinaveraged[iB,:])*(1+nonitemboost_proportion[iB]*nonitemboost_speedincrease))*(raceduration)/(raceduration+acceleration.cell(row=1+int(accelerationlevel[iB]),column=23).value-acceleration.cell(row=4,column=23).value)-1
+        speedincrease_overall[iB,:]=((1+speedincrease_coinaveraged[iB,:])*(1+nonitemboost_proportion[iB]*nonitemboost_speedincrease))*(raceduration)/(raceduration+0.5*acceleration.cell(row=1+int(accelerationlevel[iB]),column=23).value-0.5*acceleration.cell(row=4,column=23).value)-1
         # finds the speed increases at every coin including the effects of non-item boosts
         speedincrease_expected[iB]=np.dot(speedincrease_overall[iB,:],P).item()
         # evaluates the overall speed increase by the proportions of solid, grainy, and water terrains
@@ -119,8 +119,8 @@ jB=np.concatenate((np.array([jB1]),jB[:]))
 user_selection=True
 
 if user_selection:
-    IC=10 # Swoop
-    IV=3 # Reel racer
+    IC=10 # Mario
+    IV=3 # Baby Blooper
     IB=IC*nv+IV
     # the index of the chosen combination
     jB=np.concatenate((np.array([IB]),jB[:]))
