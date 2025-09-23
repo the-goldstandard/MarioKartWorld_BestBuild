@@ -14,6 +14,7 @@ characters=file["Characters"]
 vehicles=file["Vehicles"]
 weightandcoins=file["Weight & Coins"]
 acceleration=file["Acceleration"]
+miniturbo=file["MiniTurbo"]
 # separates the spreadsheets in the excel files
 
 nc=20
@@ -40,6 +41,7 @@ nonitemboost_proportion=np.zeros(nB)
 speedincrease_overall=np.zeros((nB,21))
 speedincrease_expected=np.zeros(nB)
 accelerationlevel=np.zeros(nB)
+miniturbolevel=np.zeros(nB)
 weight=np.zeros(nB)
 handling_solid=np.zeros(nB)
 handling_grainy=np.zeros(nB)
@@ -68,7 +70,7 @@ nonitemboosts=file3["Sheet1"]
 for ib in range(0,7,1):
     nonitemboost_rates[ib]=nonitemboosts.cell(row=4+ib,column=16).value
 raceduration=60/(nonitemboosts.cell(row=11,column=16).value)
-nonitemboost_speedincrease=acceleration.cell(row=4,column=26).value
+nonitemboost_speedincrease=miniturbo.cell(row=4,column=25).value
 # loads the non-item boost rates and durations
 
 for ic in range(0,nc,1):
@@ -79,10 +81,11 @@ for ic in range(0,nc,1):
         speedlvl_grainy[iB]=characters.cell(row=3+ic,column=3).value+vehicles.cell(row=3+iv,column=3).value
         speedlvl_water[iB]=characters.cell(row=3+ic,column=4).value+vehicles.cell(row=3+iv,column=4).value
         accelerationlevel[iB]=characters.cell(row=3+ic,column=5).value+vehicles.cell(row=3+iv,column=5).value
-        weight[iB]=characters.cell(row=3+ic,column=6).value+vehicles.cell(row=3+iv,column=6).value
-        handling_solid[iB]=characters.cell(row=3+ic,column=7).value+vehicles.cell(row=3+iv,column=7).value
-        handling_grainy[iB]=characters.cell(row=3+ic,column=8).value+vehicles.cell(row=3+iv,column=8).value
-        handling_water[iB]=characters.cell(row=3+ic,column=9).value+vehicles.cell(row=3+iv,column=9).value
+        miniturbolevel[iB]=characters.cell(row=3+ic,column=6).value+vehicles.cell(row=3+iv,column=6).value
+        weight[iB]=characters.cell(row=3+ic,column=7).value+vehicles.cell(row=3+iv,column=7).value
+        handling_solid[iB]=characters.cell(row=3+ic,column=8).value+vehicles.cell(row=3+iv,column=8).value
+        handling_grainy[iB]=characters.cell(row=3+ic,column=9).value+vehicles.cell(row=3+iv,column=9).value
+        handling_water[iB]=characters.cell(row=3+ic,column=10).value+vehicles.cell(row=3+iv,column=10).value
         # records all relevant stat levels by the summation of character and vehicle stat levels
         for i in range(0,21,1):
             speedincrease_solid[iB,i]=(1+weightandcoins.cell(row=2+int(speedlvl_solid[iB]),column=2).value)*(1+weightandcoins.cell(row=2+int(weight[iB]),column=5+i).value)-1
@@ -93,10 +96,10 @@ for ic in range(0,nc,1):
         speedincrease_coinaveraged[iB,:]=(0.5188*speedincrease_solid[iB,:]+0.2131*speedincrease_grainy[iB,:]+0.0747*speedincrease_water[iB,:]+0.1934*speedincrease_railairorwall[iB,:])
         # evaluates the coin-averaged speed increase
         for ib in range(0,7,1):
-            nonitemboost_durations[iB,ib]=acceleration.cell(row=1+int(accelerationlevel[iB]),column=4+3*ib).value
+            nonitemboost_durations[iB,ib]=miniturbo.cell(row=1+int(miniturbolevel[iB]),column=4+3*ib).value
             # finds the non-item boost durations
         nonitemboost_proportion[iB]=np.dot(np.array(nonitemboost_rates).flatten()/60,np.array(nonitemboost_durations[iB,:]).flatten()).item()
-        speedincrease_overall[iB,:]=((1+speedincrease_coinaveraged[iB,:])*(1+nonitemboost_proportion[iB]*nonitemboost_speedincrease))*(raceduration)/(raceduration+0.5*acceleration.cell(row=1+int(accelerationlevel[iB]),column=23).value-0.5*acceleration.cell(row=4,column=23).value)-1
+        speedincrease_overall[iB,:]=((1+speedincrease_coinaveraged[iB,:])*(1+nonitemboost_proportion[iB]*nonitemboost_speedincrease))*(raceduration)/(raceduration+0.5*acceleration.cell(row=-1+int(accelerationlevel[iB]),column=2).value-0.5*acceleration.cell(row=2,column=2).value)-1
         # finds the speed increases at every coin including the effects of non-item boosts
         speedincrease_expected[iB]=np.dot(speedincrease_overall[iB,:],P).item()
         # evaluates the overall speed increase by the proportions of solid, grainy, and water terrains
@@ -116,7 +119,7 @@ jB=np.concatenate((np.array([jB1]),jB[:]))
 
 ## find how a particular chosen combination compares (optinal; toggle by boolean)
 
-user_selection=True
+user_selection=False
 
 if user_selection:
     IC=10 # Mario
@@ -132,18 +135,18 @@ answers=pyxl.load_workbook("Answers.xlsx")
 answersheet=answers["Sheet1"]
 # opens the outfile
 
-for ia in range(1,11,1):
+for ia in range(1,12,1):
     for i1 in range(3,483,1):
         cell1=answersheet.cell(row=i1,column=ia)
         cell1.value=None
 for ia in range(1,481,1):
     for i1 in range(2,24,1):
-        cell2=answersheet.cell(row=i1,column=13+ia)
+        cell2=answersheet.cell(row=i1,column=14+ia)
         cell2.value=None
 # clears all existing answers on the outfile
 
 for c in range(0,21,1):
-    answersheet.cell(row=3+c,column=13,value=np.array(P).flatten()[c])
+    answersheet.cell(row=3+c,column=14,value=np.array(P).flatten()[c])
     # uploads the probabilities onto the answer spreadsheet
 
 if user_selection:
@@ -156,41 +159,40 @@ if user_selection:
         rank=np.nan
     for j in range(0,len(jB),1):
         # for each considered character-vehicle combination
-        answersheet.cell(row=2,column=14+j,value=j)
+        answersheet.cell(row=2,column=15+j,value=j)
+        answersheet.cell(row=3+j,column=1,value=j)
         answersheet.cell(row=3+j,column=2,value=comboname[jB[j]])
         answersheet.cell(row=3+j,column=3,value=int(speedlvl_solid[jB[j]]))
         answersheet.cell(row=3+j,column=4,value=int(speedlvl_grainy[jB[j]]))
         answersheet.cell(row=3+j,column=5,value=int(speedlvl_water[jB[j]]))
         answersheet.cell(row=3+j,column=6,value=int(accelerationlevel[jB[j]]))
-        answersheet.cell(row=3+j,column=7,value=int(weight[jB[j]]))
-        answersheet.cell(row=3+j,column=8,value=int(handling_solid[jB[j]]))
-        answersheet.cell(row=3+j,column=9,value=int(handling_grainy[jB[j]]))
-        answersheet.cell(row=3+j,column=10,value=int(handling_water[jB[j]]))
+        answersheet.cell(row=3+j,column=7,value=int(miniturbolevel[jB[j]]))
+        answersheet.cell(row=3+j,column=8,value=int(weight[jB[j]]))
+        answersheet.cell(row=3+j,column=9,value=int(handling_solid[jB[j]]))
+        answersheet.cell(row=3+j,column=10,value=int(handling_grainy[jB[j]]))
+        answersheet.cell(row=3+j,column=11,value=int(handling_water[jB[j]]))
         # uploads the attribute profile onto the outfile
         for c in range(0,21,1):
-            answersheet.cell(row=3+c,column=14+j,value=speedincrease_overall[jB[j],c])
+            answersheet.cell(row=3+c,column=15+j,value=speedincrease_overall[jB[j],c])
             # uploads the overall speed increase at every coin onto the outfile
 
         if j==0:
             answersheet.cell(row=3+j,column=1,value="User-selected")
-            answersheet.cell(row=2,column=14+j,value="User-selected")
+            answersheet.cell(row=2,column=15+j,value="User-selected")
             print(f"User-selected combination: {comboname[jB[j]]}")
         elif j==1:
-            answersheet.cell(row=3+j,column=1,value=j)
-            answersheet.cell(row=2,column=14+j,value=j)
             print("")
             print(f"Best combination: {comboname[jB[j]]}")
         else:
-            answersheet.cell(row=3+j,column=1,value=j)
-            answersheet.cell(row=2,column=14+j,value=j)
             print("")
             print(f"Viable alternative {j-1}: {comboname[jB[j]]}")
 
         print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3):.3f}% from baseline")
-        print(f"Speed level: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
-        print(f"Acceleration level: {int(accelerationlevel[jB[j]])}")
-        print(f"Weight: {int(weight[jB[j]])}")
-        print(f"Handling: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}")
+        print(f"Speed attribute: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
+        print(f"Acceleration attribute: {int(accelerationlevel[jB[j]])}")
+        print(f"Mini-turbo attribute: {int(miniturbolevel[jB[j]])}")
+        print(f"Weight attribute: {int(weight[jB[j]])}")
+        print(f"Handling attribute: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}")
 
         if j==0:
             if rank==1:
@@ -212,20 +214,21 @@ if user_selection:
 else:
     for j in range(0,len(jB),1):
         # for each considered character-vehicle combination
+        answersheet.cell(row=2,column=16+j,value=j+1)
         answersheet.cell(row=4+j,column=1,value=j+1)
-        answersheet.cell(row=2,column=15+j,value=j+1)
         answersheet.cell(row=4+j,column=2,value=comboname[jB[j]])
         answersheet.cell(row=4+j,column=3,value=int(speedlvl_solid[jB[j]]))
         answersheet.cell(row=4+j,column=4,value=int(speedlvl_grainy[jB[j]]))
         answersheet.cell(row=4+j,column=5,value=int(speedlvl_water[jB[j]]))
         answersheet.cell(row=4+j,column=6,value=int(accelerationlevel[jB[j]]))
-        answersheet.cell(row=4+j,column=7,value=int(weight[jB[j]]))
-        answersheet.cell(row=4+j,column=8,value=int(handling_solid[jB[j]]))
-        answersheet.cell(row=4+j,column=9,value=int(handling_grainy[jB[j]]))
-        answersheet.cell(row=4+j,column=10,value=int(handling_water[jB[j]]))
+        answersheet.cell(row=4+j,column=7,value=int(miniturbolevel[jB[j]]))
+        answersheet.cell(row=4+j,column=8,value=int(weight[jB[j]]))
+        answersheet.cell(row=4+j,column=9,value=int(handling_solid[jB[j]]))
+        answersheet.cell(row=4+j,column=10,value=int(handling_grainy[jB[j]]))
+        answersheet.cell(row=4+j,column=11,value=int(handling_water[jB[j]]))
         # uploads the attribute profile onto the outfile
         for c in range(0,21,1):
-            answersheet.cell(row=3+c,column=15+j,value=speedincrease_coinaveraged[jB[j],c])
+            answersheet.cell(row=3+c,column=16+j,value=speedincrease_coinaveraged[jB[j],c])
             # uploads the overall speed increase at every coin onto the outfile
 
         if j==0:
@@ -235,10 +238,11 @@ else:
             print(f"Viable alternative {j}: {comboname[jB[j]]}")
 
         print(f"Expected speed: +{np.round(100*speedincrease_expected[jB[j]],3):.3f}% from baseline")
-        print(f"Speed level: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
-        print(f"Acceleration level: {int(accelerationlevel[jB[j]])}")
-        print(f"Weight: {int(weight[jB[j]])}")
-        print(f"Handling: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}") 
+        print(f"Speed attribute: {int(speedlvl_solid[jB[j]])}-{int(speedlvl_grainy[jB[j]])}-{int(speedlvl_water[jB[j]])}")
+        print(f"Acceleration attribute: {int(accelerationlevel[jB[j]])}")
+        print(f"Mini-turbo attribute: {int(miniturbolevel[jB[j]])}")
+        print(f"Weight attribute: {int(weight[jB[j]])}")
+        print(f"Handling attribute: {int(handling_solid[jB[j]])}-{int(handling_grainy[jB[j]])}-{int(handling_water[jB[j]])}") 
 
 answers.save("Answers.xlsx")
 # saves the outfile
