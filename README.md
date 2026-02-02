@@ -3,8 +3,9 @@ Overview:
 This project uses Queueing Theory to find the optimal character-vehicle combinations for 150cc races in Mario Kart World. It calculates the probabilities of possessing different numbers of coins during a race and evaluates the expected overall speed of every possible combination. The model accounts for:
 
 - Speed increases from terrain-specific speed attributes
-- The effects of the weight attribute on how the combination's speed responds to coins
-- The effects of the acceleration attribute on drift and trick boost durations and the zero-to-top-speed duration
+- How the combination's speed responds to coins
+- The effects of the acceleration attribute on the zero-to-top-speed duration
+- The effects of the mini-turbo attribute on the drift and trick boost durations
 
 Findings:
 
